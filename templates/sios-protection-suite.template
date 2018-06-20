@@ -1,0 +1,826 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: This template creates a deployment of SIOS Protection Suite for Linux on AWS EC2, 
+  within an existing VPC and Bastion server environment. **WARNING** This template creates EC2
+  instances and related resources. You will be billed for the AWS resources used if you create
+  a stack from this template. SIOS Protection Suite for Linux is licensed separately. Please contact 
+  SIOS at support@us.sios.com or visit https://us.sios.com/demo-request/ for demo licenses.
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: Network Configuration
+      Parameters:
+      - VPCID
+      - PrivateSubnet1ID
+      - PrivateSubnet1CIDR
+      - PrivateSubnet2ID
+      - PrivateSubnet2CIDR
+      - PublicSubnet1ID
+      - PublicSubnet2ID
+    - Label:
+        default: Bastion Configuration
+      Parameters:
+      - KeyPairName
+      - BastionSecurityGroupID
+    - Label:
+        default: SIOS Protection Suite Instance Configuration
+      Parameters:
+      - SPSLInstanceNamePrefix
+      - SPSLInstanceType
+      - HomeVolumeType
+      - HomeSize
+      - HomeIops
+      - HomeDeleteOnTermination
+      - MirrorVolumeType
+      - MirrorSize
+      - MirrorIops
+      - MirrorDeleteOnTermination
+      - NewRootPassword
+      - SIOSAMIType
+      - SIOSLicenseKeyFtpURL
+      - Node1PrivateIP
+      - Node2PrivateIP
+      - SwitchableVirtualIP
+      - WindowsJumpboxInstanceType
+    - Label:
+        default: AWS Quick Start Configuration
+      Parameters:
+      - QSS3BucketName
+      - QSS3KeyPrefix
+    ParameterLabels:
+      BastionSecurityGroupID:
+        default: Bastion Security Group ID
+      SPSLInstanceNamePrefix:
+        default: SIOS Protection Suite Instance Name Prefix
+      SPSLInstanceType:
+        default: SIOS Protection Suite Instance Type
+      HomeDeleteOnTermination:
+        default: Delete Home on termination
+      HomeIops:
+        default: Home directory IOPS
+      HomeVolumeType:
+        default: Home directory volume type
+      HomeSize:
+        default: Home directory size
+      MirrorDeleteOnTermination:
+        default: Delete Mirror on termination
+      MirrorIops:
+        default: Mirror directory IOPS
+      MirrorVolumeType:
+        default: Mirror directory volume type
+      MirrorSize:
+        default: Mirror directory size
+      KeyPairName:
+        default: Key Pair Name
+      NewRootPassword:
+        default: New Root Password
+      SIOSAMIType:
+        default: License model for SIOS AMI
+      SIOSLicenseKeyFtpURL:
+        default: SIOS Protection Suite License URL
+      VPCID:
+        default: VPC ID
+      PrivateSubnet1ID:
+        default: Private Subnet 1 ID
+      PrivateSubnet1CIDR:
+        default: CIDR block for Private Subnet 1A
+      Node1PrivateIP:
+        default: Node 1 Private IP Address
+      PrivateSubnet2ID:
+        default: Private Subnet 2 ID
+      PrivateSubnet2CIDR:
+        default: CIDR block for Private Subnet 2A
+      Node2PrivateIP:
+        default: Node 2 Private IP Address
+      PublicSubnet1ID:
+        default: Public Subnet 1 ID
+      PublicSubnet2ID:
+        default: Public Subnet 2 ID
+      SwitchableVirtualIP:
+        default: Initial Switchable Virtual IP
+      WindowsJumpboxInstanceType:
+        default: Instance type to use for optional Windows Jumpbox
+      QSS3BucketName:
+        default: Quick Start S3 Bucket Name
+      QSS3KeyPrefix:
+        default: Quick Start S3 Key Prefix
+Parameters:
+  BastionSecurityGroupID:
+    Description: ID of the bastion host security group to enable SSH connections (e.g., sg-1a23b456)
+    Type: AWS::EC2::SecurityGroup::Id
+  SPSLInstanceNamePrefix:
+    Description: Name for the SIOS Protection Suite instance that is deployed to EC2
+    Type: String
+    Default: "SPS-L-"
+  SPSLInstanceType:
+    Description: SIOS Protection Suite server EC2 instance type
+    Type: String
+    Default: "t2.medium"
+    AllowedValues:
+    - t2.medium
+    - t2.large
+    - m1.medium
+    - m1.large
+    - m1.xlarge
+    - m2.xlarge
+    - m2.2xlarge
+    - m2.4xlarge
+    - m3.medium
+    - m3.large
+    - m3.xlarge
+    - m3.2xlarge
+    - m4.large
+    - m4.xlarge
+    - m4.2xlarge
+    - m4.4xlarge
+    - m4.10xlarge
+    - c1.medium
+    - c1.xlarge
+    - c3.large
+    - c3.xlarge
+    - c3.2xlarge
+    - c3.4xlarge
+    - c3.8xlarge
+    - c4.large
+    - c4.xlarge
+    - c4.2xlarge
+    - c4.4xlarge
+    - c4.8xlarge
+    - g2.2xlarge
+    - g2.8xlarge
+    - r3.large
+    - r3.xlarge
+    - r3.2xlarge
+    - r3.4xlarge
+    - r3.8xlarge
+    - i2.xlarge
+    - i2.2xlarge
+    - i2.4xlarge
+    - i2.8xlarge
+    - d2.xlarge
+    - d2.2xlarge
+    - d2.4xlarge
+    - d2.8xlarge
+    - hi1.4xlarge
+    - hs1.8xlarge
+    - cr1.8xlarge
+    - cc2.8xlarge
+    - cg1.4xlarge
+    ConstraintDescription: must be a valid EC2 instance type.
+  HomeDeleteOnTermination:
+    Description: Delete Bitbucket home directory volume when the file server instance is terminated.  You must back up your data before terminating your file server instance if this option is set to 'true'
+    Type: String
+    Default: "true"
+    AllowedValues: [true, false]
+    ConstraintDescription: Must be 'true' or 'false'.
+  HomeIops:
+    Description: "Home directory IOPS (100 - 20000, only used with Provisioned IOPS).  Note: The ratio of IOPS provisioned to the volume size requested can be a maximum of 50; for example, a volume with 5000 IOPS must be at least 100 GiB"
+    Type: Number
+    Default: 1000
+    MinValue: 100
+    MaxValue: 20000
+    ConstraintDescription: Must be in the range 100 - 20000.
+  HomeSize:
+    Description: Home directory storage size, in gibibytes (GiB) (100 - 16384)
+    Type: Number
+    Default: 25
+    MinValue: 25
+    MaxValue: 16384
+    ConstraintDescription: Must be in the range 100 - 16384.
+  HomeVolumeType:
+    Type: String
+    Default: "Provisioned IOPS"
+    AllowedValues: ["General Purpose (SSD)", "Provisioned IOPS"]
+    ConstraintDescription: Must be 'General Purpose (SSD)' or 'Provisioned IOPS'.
+  MirrorDeleteOnTermination:
+    Description: Delete Bitbucket Mirror directory volume when the file server instance is terminated.  You must back up your data before terminating your file server instance if this option is set to 'true'
+    Type: String
+    Default: "true"
+    AllowedValues: [true, false]
+    ConstraintDescription: Must be 'true' or 'false'.
+  MirrorIops:
+    Description: "Mirror directory IOPS (100 - 20000, only used with Provisioned IOPS).  Note: The ratio of IOPS provisioned to the volume size requested can be a maximum of 50; for example, a volume with 5000 IOPS must be at least 100 GiB"
+    Type: Number
+    Default: 1000
+    MinValue: 100
+    MaxValue: 20000
+    ConstraintDescription: Must be in the range 100 - 20000.
+  MirrorSize:
+    Description: Mirror directory storage size, in gibibytes (GiB) (100 - 16384)
+    Type: Number
+    Default: 100
+    MinValue: 100
+    MaxValue: 16384
+    ConstraintDescription: Must be in the range 100 - 16384.
+  MirrorVolumeType:
+    Type: String
+    Default: "Provisioned IOPS"
+    AllowedValues: ["General Purpose (SSD)", "Provisioned IOPS"]
+    ConstraintDescription: Must be 'General Purpose (SSD)' or 'Provisioned IOPS'.
+  KeyPairName:
+    Description: Name of an existing EC2 key pair. All instances will launch with
+      this key pair.
+    Type: AWS::EC2::KeyPair::KeyName
+  NewRootPassword:
+    Description: Password for predefined siosadmin user used to administer SIOS Protection Suite (Min.
+      Length of 8 Characters, Max Length of 16 Characters)
+    Type: String
+    MinLength: 8
+    MaxLength: 16
+    NoEcho: true
+  SIOSAMIType:
+    Description: SIOS Protection Suite AMI license model
+    Type: String
+    Default: "PAYG"
+    AllowedValues:
+    - BYOL
+    - PAYG
+  SIOSLicenseKeyFtpURL:
+    Description: URL used to obtain license key for SIOS DataKeeper software
+    Type: String
+  VPCID:
+    Description: ID of your existing VPC for deployment
+    Type: AWS::EC2::VPC::Id
+  PrivateSubnet1ID:
+    Description: ID of private subnet 1 in Availability Zone 1 for the SIOS Protection Suite instances
+      (e.g., subnet-a0246dcd)
+    Type: AWS::EC2::Subnet::Id
+  PrivateSubnet1CIDR:
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/x
+    Description: The CIDR IP range for Private Subnet 1A
+    Default: "10.0.0.0/19"
+    Type: String
+  Node1PrivateIP:
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$
+    ConstraintDescription: IPv4 parameter must be in the form x.x.x.x and belong to Private Subnet 1A
+    Description: Private IPv4 address in subnet 1 in Availability Zone 1 for SPS Node1
+    Default: "10.0.0.100"
+    Type: String
+  PrivateSubnet2ID:
+    Description: ID of private subnet 2 in Availability Zone 2 for the SIOS Protection Suite instances
+      (e.g., subnet-b1f432cd)
+    Type: AWS::EC2::Subnet::Id
+  PrivateSubnet2CIDR:
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/x
+    Description: The CIDR IP range for Private Subnet 2A
+    Default: "10.0.32.0/19"
+    Type: String
+  Node2PrivateIP:
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$
+    ConstraintDescription: IPv4 parameter must be in the form x.x.x.x and belong to Private Subnet 2A
+    Description: Private IPv4 address in subnet 2 in Availability Zone 2 for SPS Node2
+    Default: "10.0.32.100"
+    Type: String
+  PublicSubnet1ID:
+    Description: ID of public subnet 1 in Availability Zone 1 for the ELB load balancer
+      (e.g., subnet-9bc642ac)
+    Type: AWS::EC2::Subnet::Id
+  PublicSubnet2ID:
+    Description: ID of public subnet 2 in Availability Zone 2 for the ELB load balancer
+      (e.g., subnet-e3246d8e)
+    Type: AWS::EC2::Subnet::Id
+  SwitchableVirtualIP:
+    Description: Initial switchable Virtual IP
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$
+    ConstraintDescription: IPv4 parameter must be in the form x.x.x.x and NOT belong to the VPC address range (i.e if the 
+      VPC base address range is 10.0.0.0/16, then 10.1.0.0 would be a valid address for this parameter)
+    Default: "10.1.0.100"
+    Type: String
+  WindowsJumpboxInstanceType:
+    AllowedValues:
+    - None
+    - t2.nano
+    - t2.micro
+    - t2.small
+    - t2.medium
+    - t2.large
+    - m3.large
+    - m3.xlarge
+    - m3.2xlarge
+    - m4.large
+    - m4.xlarge
+    - m4.2xlarge
+    - m4.4xlarge
+    Default: None
+    Description: Amazon EC2 instance type for the bastion instances
+    Type: String
+  QSS3BucketName:
+    AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
+    ConstraintDescription: Quick Start bucket name can include numbers, lowercase
+      letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen
+      (-).
+    Default: "quickstart-reference"
+    Description: S3 bucket name for the Quick Start assets. This string can include
+      numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start
+      or end with a hyphen (-).
+    Type: String
+  QSS3KeyPrefix:
+    AllowedPattern: ^[0-9a-zA-Z-/]*$
+    ConstraintDescription: Quick Start key prefix can include numbers, lowercase letters,
+      uppercase letters, hyphens (-), and forward slash (/).
+    Default: "sios/protection-suite/latest/"
+    Description: S3 key prefix for the Quick Start assets. Quick Start key prefix
+      can include numbers, lowercase letters, uppercase letters, hyphens (-), and
+      forward slash (/).
+    Type: String
+Rules:
+  SubnetsInVPC:
+    Assertions:
+    - Assert:
+        Fn::EachMemberIn:
+        - Fn::ValueOfAll:
+          - AWS::EC2::Subnet::Id
+          - VpcId
+        - Fn::RefAll: AWS::EC2::VPC::Id
+      AssertDescription: All subnets must be in the VPC
+Mappings:
+  AWSAMIRegionMap:
+    AMI:
+      SPSLRHEL: SIOS_Protection_Suite_922_on_RHEL_74
+      SPSLRHELBYOL: SIOS_Protection_Suite_922_on_RHEL_74_BYOL
+      WS2016FULLBASE: Windows_Server-2016-English-Full-Base-2018.05.09
+    us-east-1:
+      SPSLRHEL:       ami-
+      SPSLRHELBYOL:   ami-44ae023b
+      WS2016FULLBASE: ami-f0df538f
+    us-east-2:
+      SPSLRHEL:       ami-
+      SPSLRHELBYOL:   ami-78c0f31d
+      WS2016FULLBASE: ami-fd0f3298
+    us-west-1:
+      SPSLRHEL:       ami-
+      SPSLRHELBYOL:   ami-779b8917
+      WS2016FULLBASE: ami-36213f56
+    us-west-2:
+      SPSLRHEL:       ami-
+      SPSLRHELBYOL:   ami-e6610e9e
+      WS2016FULLBASE: ami-c9deafb1
+    ca-central-1:
+      SPSLRHEL:       ami-
+      SPSLRHELBYOL:   ami-59f7763d
+      WS2016FULLBASE: ami-e994148d
+    ap-south-1:
+      SPSLRHEL:       ami-
+      SPSLRHELBYOL:   ami-79446216
+      WS2016FULLBASE: ami-bd8daed2
+    ap-northeast-2:
+      SPSLRHEL:       ami-
+      SPSLRHELBYOL:   ami-a64ae4c8
+      WS2016FULLBASE: ami-2812bb46
+    ap-southeast-1:
+      SPSLRHEL:       ami-
+      SPSLRHELBYOL:   ami-be0220c2
+      WS2016FULLBASE: ami-fd95a081
+    ap-southeast-2:
+      SPSLRHEL:       ami-
+      SPSLRHELBYOL:   ami-800fc4e2
+      WS2016FULLBASE: ami-307fa852
+    eu-central-1:
+      SPSLRHEL:       ami-
+      SPSLRHELBYOL:   ami-56efcabd
+      WS2016FULLBASE: ami-68052883
+    eu-west-1:
+      SPSLRHEL:       ami-
+      SPSLRHELBYOL:   ami-267f5f5f
+      WS2016FULLBASE: ami-894c7bf0
+    eu-west-2:
+      SPSLRHEL:       ami-
+      SPSLRHELBYOL:   ami-6d93700a
+      WS2016FULLBASE: ami-1c46a47b
+    eu-west-3:
+      SPSLRHEL:       ami-
+      SPSLRHELBYOL:   ami-5cc07121
+      WS2016FULLBASE: ami-918031ec
+    sa-east-1:
+      SPSLRHEL:       ami-
+      SPSLRHELBYOL:   ami-cf99c9a3
+      WS2016FULLBASE: ami-efd88583
+Conditions:
+  GovCloudCondition:
+    !Equals [!Ref "AWS::Region", "us-gov-west-1"]
+  HomeProvisionedIopsCondition:
+    !Equals [!Ref HomeVolumeType, "Provisioned IOPS"]
+  MirrorProvisionedIopsCondition:
+    !Equals [!Ref MirrorVolumeType, "Provisioned IOPS"]
+  WindowsJumpboxCondition:
+    !Not [!Equals [!Ref WindowsJumpboxInstanceType, None]]
+  BYOLAMICondition:
+    !Equals [!Ref SIOSAMIType, BYOL]
+Resources:
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - ec2.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: /
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+      - !Ref InstanceRole
+  X11InboundRule1:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      IpProtocol: tcp
+      FromPort: 5801
+      ToPort: 5802
+      CidrIp: 0.0.0.0/0
+      GroupId: !Ref BastionSecurityGroupID
+  X11InboundRule2:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      IpProtocol: tcp
+      FromPort: 5901
+      ToPort: 5902
+      CidrIp: 0.0.0.0/0
+      GroupId: !Ref BastionSecurityGroupID
+  RDPInboundRule:
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: WindowsJumpboxCondition
+    Properties:
+      IpProtocol: tcp
+      FromPort: 3389
+      ToPort: 3389
+      CidrIp: 0.0.0.0/0
+      GroupId: !Ref BastionSecurityGroupID
+  JavaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group allowing SSH and HTTP/HTTPS access
+      VpcId: !Ref VPCID
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 1024
+        ToPort: 65535
+        CidrIp: !Ref PrivateSubnet1CIDR
+      - IpProtocol: tcp
+        FromPort: 1024
+        ToPort: 65535
+        CidrIp: !Ref PrivateSubnet2CIDR
+  SPSLSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group allowing SSH and HTTP/HTTPS access
+      VpcId: !Ref VPCID
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 81
+        ToPort: 82
+        CidrIp: !Ref PrivateSubnet1CIDR
+      - IpProtocol: tcp
+        FromPort: 778
+        ToPort: 778
+        CidrIp: !Ref PrivateSubnet1CIDR
+      - IpProtocol: tcp
+        FromPort: 81
+        ToPort: 82
+        CidrIp: !Ref PrivateSubnet2CIDR
+      - IpProtocol: tcp
+        FromPort: 778
+        ToPort: 778
+        CidrIp: !Ref PrivateSubnet2CIDR
+  Jumpbox:
+    Type: AWS::EC2::Instance
+    Metadata:
+      AWS::CloudFormation::Authentication:
+        S3AccessCreds:
+          type: S3
+          roleName: !Ref InstanceRole
+          buckets: !Ref QSS3BucketName
+    Properties:
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeType: gp2
+            DeleteOnTermination: true
+            VolumeSize: 50
+      IamInstanceProfile: !Ref InstanceProfile
+      EbsOptimized: false
+      ImageId:
+        !FindInMap
+          - AWSAMIRegionMap
+          - !Ref "AWS::Region"
+          - WS2016FULLBASE
+      InstanceType: !Ref WindowsJumpboxInstanceType
+      KeyName: !Ref KeyPairName
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true"
+          GroupSet: 
+          - !Ref SPSLSecurityGroup
+          - !Ref BastionSecurityGroupID
+          - !Ref JavaSecurityGroup
+          DeviceIndex: 0
+          DeleteOnTermination: true
+          SubnetId: !Ref PublicSubnet1ID
+      Tags:
+        - Key: Name
+          Value: !Sub |
+            ${SPSLInstanceNamePrefix}Jumpbox
+  SPSNode2:
+    Type: AWS::EC2::Instance
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: PT30M
+    Metadata:
+      AWS::CloudFormation::Authentication:
+        S3AccessCreds:
+          type: S3
+          roleName: !Ref InstanceRole
+          buckets: !Ref QSS3BucketName
+      AWS::CloudFormation::Init:
+        configSets:
+          default: [1]
+        "1":
+          files:
+            /etc/cfn/cfn-hup.conf:
+              content: !Sub |
+                [main]
+                stack=${AWS::StackId}
+                region=${AWS::Region}
+                interval=1
+              mode: 000400
+              owner: root
+              group: root
+            /etc/cfn/hooks.d/cfn-auto-reloader.conf:
+              content: !Sub |
+                [cfn-auto-reloader-hook]
+                triggers=post.update
+                path=Resources.SPSNode1.Metadata.AWS::CloudFormation::Init
+                action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource SPSNode1 --region ${AWS::Region}
+                runas=root
+              mode: 000400
+              owner: root
+              group: root
+            /lib/systemd/system/cfn-hup.service:
+              content: !Sub |
+                [Unit]
+                Description=cfn-hup daemon
+                [Service]
+                Type=simple
+                ExecStart=/opt/aws/bin/cfn-hup
+                Restart=always
+                [Install]
+                WantedBy=multi-user.target
+              mode: 000400
+              owner: root
+              group: root
+            /etc/cfn/InstallLicAndStartLK.pl:
+              source: !Sub 
+                - "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}scripts/InstallLicAndStartLK.pl"
+                - QSS3Region: !If [GovCloudCondition, "s3-us-gov-west-1", "s3"]
+              authentication: S3AccessCreds
+              mode: 000400
+              owner: root
+              group: root
+            /etc/cfn/CreateCommPath.pl:
+              source: !Sub 
+                - "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}scripts/CreateCommPath.pl"
+                - QSS3Region: !If [GovCloudCondition, "s3-us-gov-west-1", "s3"]
+              authentication: S3AccessCreds
+              mode: 000400
+              owner: root
+              group: root
+          commands:
+            010_enable_cfn_hup:
+              command: systemctl enable cfn-hup.service
+            020_start_cfn_hup:
+              command: systemctl start cfn-hup.service
+            030_download_lk_license:
+              command: !Sub
+                /etc/cfn/InstallLicAndStartLK.pl -u ${SIOSLicenseKeyFtpURL}
+              ignoreErrors: false
+            040_create_lk_comm_path:
+              command: !Sub
+                /etc/cfn/CreateCommPath.pl -l ${Node2PrivateIP} -r ${Node1PrivateIP} -s ${SPSLInstanceNamePrefix}01
+              ignoreErrors: false
+          services:
+            sysvinit:
+              cfn-hup:
+                enabled: true
+                ensureRunning: true
+                files: [/etc/cfn/cfn-hup.conf, /etc/cfn/hooks.d/cfn-auto-reloader.conf]
+    Properties:
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeType: !If [HomeProvisionedIopsCondition, io1, gp2]
+            Iops: !If [HomeProvisionedIopsCondition, !Ref HomeIops, !Ref "AWS::NoValue"]
+            DeleteOnTermination: !Ref HomeDeleteOnTermination
+            VolumeSize: !Ref HomeSize
+        - DeviceName: /dev/xvdca
+          Ebs:
+            VolumeType: !If [MirrorProvisionedIopsCondition, io1, gp2]
+            Iops: !If [MirrorProvisionedIopsCondition, !Ref MirrorIops, !Ref "AWS::NoValue"]
+            DeleteOnTermination: !Ref MirrorDeleteOnTermination
+            VolumeSize: !Ref MirrorSize
+      IamInstanceProfile: !Ref InstanceProfile
+      EbsOptimized: false
+      ImageId:
+        !If
+          - BYOLAMICondition
+          - 
+            !FindInMap
+              - AWSAMIRegionMap
+              - !Ref "AWS::Region"
+              - SPSLRHELBYOL
+          - 
+            !FindInMap
+              - AWSAMIRegionMap
+              - !Ref "AWS::Region"
+              - SPSLRHEL
+      InstanceType: !Ref SPSLInstanceType
+      KeyName: !Ref KeyPairName
+      NetworkInterfaces:
+        - GroupSet: 
+          - !Ref SPSLSecurityGroup
+          - !Ref BastionSecurityGroupID
+          - !Ref JavaSecurityGroup
+          DeviceIndex: 0
+          DeleteOnTermination: true
+          SubnetId: !Ref PrivateSubnet2ID
+          PrivateIpAddress: !Ref Node2PrivateIP
+      Tags:
+        - Key: Name
+          Value: !Sub |
+            ${SPSLInstanceNamePrefix}02
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -ex
+          hostname ${SPSLInstanceNamePrefix}02
+          echo ${SPSLInstanceNamePrefix}02 > /etc/hostname
+          echo '${NewRootPassword}' | passwd --stdin root
+          echo -e '${Node1PrivateIP}\t${SPSLInstanceNamePrefix}01\n' >> /etc/hosts
+          echo -e '${Node2PrivateIP}\t${SPSLInstanceNamePrefix}02\n' >> /etc/hosts
+          yum install -y python-setuptools
+          yum install -y wget
+          mkdir -p /opt/aws/bin
+          wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
+          easy_install --script-dir /opt/aws/bin aws-cfn-bootstrap-latest.tar.gz
+          /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource SPSNode2 --region ${AWS::Region}
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource SPSNode2 --region ${AWS::Region}
+  SPSNode1:
+    Type: AWS::EC2::Instance
+    DependsOn: SPSNode2
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: PT30M
+    Metadata:
+      AWS::CloudFormation::Authentication:
+        S3AccessCreds:
+          type: S3
+          roleName: !Ref InstanceRole
+          buckets: !Ref QSS3BucketName
+      AWS::CloudFormation::Init:
+        config:
+          files:
+            /etc/cfn/cfn-hup.conf:
+              content: !Sub |
+                [main]
+                stack=${AWS::StackId}
+                region=${AWS::Region}
+                interval=1
+              mode: 000400
+              owner: root
+              group: root
+            /etc/cfn/hooks.d/cfn-auto-reloader.conf:
+              content: !Sub |
+                [cfn-auto-reloader-hook]
+                triggers=post.update
+                path=Resources.SPSNode1.Metadata.AWS::CloudFormation::Init
+                action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource SPSNode1 --region ${AWS::Region}
+                runas=root
+              mode: 000400
+              owner: root
+              group: root
+            /lib/systemd/system/cfn-hup.service:
+              content: !Sub |
+                [Unit]
+                Description=cfn-hup daemon
+                [Service]
+                Type=simple
+                ExecStart=/opt/aws/bin/cfn-hup
+                Restart=always
+                [Install]
+                WantedBy=multi-user.target
+              mode: 000400
+              owner: root
+              group: root
+            /etc/cfn/InstallLicAndStartLK.pl:
+              source: !Sub 
+                - "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}scripts/InstallLicAndStartLK.pl"
+                - QSS3Region: !If [GovCloudCondition, "s3-us-gov-west-1", "s3"]
+              authentication: S3AccessCreds
+              mode: 000400
+              owner: root
+              group: root
+            /etc/cfn/CreateCommPath.pl:
+              source: !Sub 
+                - "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}scripts/CreateCommPath.pl"
+                - QSS3Region: !If [GovCloudCondition, "s3-us-gov-west-1", "s3"]
+              authentication: S3AccessCreds
+              mode: 000400
+              owner: root
+              group: root
+            /etc/cfn/CreateMirrorHierarchy.pl:
+              source: !Sub 
+                - "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}scripts/CreateMirrorHierarchy.pl"
+                - QSS3Region: !If [GovCloudCondition, "s3-us-gov-west-1", "s3"]
+              authentication: S3AccessCreds
+              mode: 000400
+              owner: root
+              group: root
+          commands:
+            010_enable_cfn_hup:
+              command: systemctl enable cfn-hup.service
+            020_start_cfn_hup:
+              command: systemctl start cfn-hup.service
+            030_download_lk_license:
+              command: !Sub |
+                /etc/cfn/InstallLicAndStartLK.pl -u ${SIOSLicenseKeyFtpURL}
+              ignoreErrors: false
+            040_create_lk_comm_path:
+              command: !Sub |
+                /etc/cfn/CreateCommPath.pl -l ${Node1PrivateIP} -r ${Node2PrivateIP} -s ${SPSLInstanceNamePrefix}02
+              ignoreErrors: false
+            050_create_mirror:
+              command: !Sub |
+                while ! /etc/cfn/CreateMirrorHierarchy.pl -l /dev/xvdca -r /dev/xvdca; do sleep 10; done
+          services:
+            sysvinit:
+              cfn-hup:
+                enabled: true
+                ensureRunning: true
+                files: 
+                  - /etc/cfn/cfn-hup.conf
+                  - /etc/cfn/hooks.d/cfn-auto-reloader.conf
+    Properties:
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeType: !If [HomeProvisionedIopsCondition, io1, gp2]
+            Iops: !If [HomeProvisionedIopsCondition, !Ref HomeIops, !Ref "AWS::NoValue"]
+            DeleteOnTermination: !Ref HomeDeleteOnTermination
+            VolumeSize: !Ref HomeSize
+        - DeviceName: /dev/xvdca
+          Ebs:
+            VolumeType: !If [MirrorProvisionedIopsCondition, io1, gp2]
+            Iops: !If [MirrorProvisionedIopsCondition, !Ref MirrorIops, !Ref "AWS::NoValue"]
+            DeleteOnTermination: !Ref MirrorDeleteOnTermination
+            VolumeSize: !Ref MirrorSize
+      IamInstanceProfile: !Ref InstanceProfile
+      EbsOptimized: false
+      ImageId:
+        !If
+          - BYOLAMICondition
+          - 
+            !FindInMap
+              - AWSAMIRegionMap
+              - !Ref "AWS::Region"
+              - SPSLRHELBYOL
+          - 
+            !FindInMap
+              - AWSAMIRegionMap
+              - !Ref "AWS::Region"
+              - SPSLRHEL
+      InstanceType: !Ref SPSLInstanceType
+      KeyName: !Ref KeyPairName
+      NetworkInterfaces:
+        - GroupSet: 
+          - !Ref SPSLSecurityGroup
+          - !Ref BastionSecurityGroupID
+          - !Ref JavaSecurityGroup
+          DeviceIndex: 0
+          DeleteOnTermination: true
+          SubnetId: !Ref PrivateSubnet1ID
+          PrivateIpAddress: !Ref Node1PrivateIP
+      Tags:
+        - Key: Name
+          Value: !Sub |
+            ${SPSLInstanceNamePrefix}01
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -ex
+          hostname ${SPSLInstanceNamePrefix}01
+          echo ${SPSLInstanceNamePrefix}01 > /etc/hostname
+          echo '${NewRootPassword}' | passwd --stdin root
+          echo -e '${Node1PrivateIP}\t${SPSLInstanceNamePrefix}01\n' >> /etc/hosts
+          echo -e '${Node2PrivateIP}\t${SPSLInstanceNamePrefix}02\n' >> /etc/hosts
+          yum install -y python-setuptools
+          yum install -y wget
+          mkdir -p /opt/aws/bin
+          wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
+          easy_install --script-dir /opt/aws/bin aws-cfn-bootstrap-latest.tar.gz
+          /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource SPSNode1 --region ${AWS::Region}
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource SPSNode1 --region ${AWS::Region}
