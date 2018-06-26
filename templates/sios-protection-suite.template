@@ -343,7 +343,7 @@ Mappings:
       SPSLRHELBYOL: SIOS_Protection_Suite_922_on_RHEL_74_BYOL
       WS2016FULLBASE: Windows_Server-2016-English-Full-Base-2018.05.09
     us-east-1:
-      SPSLRHEL:       ami-
+      SPSLRHEL:       ami-dc6835a3
       SPSLRHELBYOL:   ami-44ae023b
       WS2016FULLBASE: ami-f0df538f
     us-east-2:
@@ -540,8 +540,12 @@ Resources:
           buckets: !Ref QSS3BucketName
       AWS::CloudFormation::Init:
         configSets:
-          default: [1]
-        "1":
+          default: 
+            !If
+              - BYOLAMICondition
+              - byol
+              - payg
+        "byol":
           files:
             /etc/cfn/cfn-hup.conf:
               content: !Sub |
@@ -596,11 +600,18 @@ Resources:
               command: systemctl enable cfn-hup.service
             020_start_cfn_hup:
               command: systemctl start cfn-hup.service
-            030_download_lk_license:
+            030_initialization:
+              command: !Sub |
+                hostname ${SPSLInstanceNamePrefix}02
+                echo ${SPSLInstanceNamePrefix}02 > /etc/hostname
+                echo '${NewRootPassword}' | passwd --stdin root
+                echo -e '${Node1PrivateIP}\t${SPSLInstanceNamePrefix}01\n' >> /etc/hosts
+                echo -e '${Node2PrivateIP}\t${SPSLInstanceNamePrefix}02\n' >> /etc/hosts
+            040_download_lk_license:
               command: !Sub
                 /etc/cfn/InstallLicAndStartLK.pl -u ${SIOSLicenseKeyFtpURL}
               ignoreErrors: false
-            040_create_lk_comm_path:
+            050_create_lk_comm_path:
               command: !Sub
                 /etc/cfn/CreateCommPath.pl -l ${Node2PrivateIP} -r ${Node1PrivateIP} -s ${SPSLInstanceNamePrefix}01
               ignoreErrors: false
@@ -610,6 +621,78 @@ Resources:
                 enabled: true
                 ensureRunning: true
                 files: [/etc/cfn/cfn-hup.conf, /etc/cfn/hooks.d/cfn-auto-reloader.conf]
+        "payg":
+          files:
+            /etc/cfn/cfn-hup.conf:
+              content: !Sub |
+                [main]
+                stack=${AWS::StackId}
+                region=${AWS::Region}
+                interval=1
+              mode: 000400
+              owner: root
+              group: root
+            /etc/cfn/hooks.d/cfn-auto-reloader.conf:
+              content: !Sub |
+                [cfn-auto-reloader-hook]
+                triggers=post.update
+                path=Resources.SPSNode1.Metadata.AWS::CloudFormation::Init
+                action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource SPSNode1 --region ${AWS::Region}
+                runas=root
+              mode: 000400
+              owner: root
+              group: root
+            /lib/systemd/system/cfn-hup.service:
+              content: !Sub |
+                [Unit]
+                Description=cfn-hup daemon
+                [Service]
+                Type=simple
+                ExecStart=/opt/aws/bin/cfn-hup
+                Restart=always
+                [Install]
+                WantedBy=multi-user.target
+              mode: 000400
+              owner: root
+              group: root
+            /etc/cfn/CreateCommPath.pl:
+              source: !Sub 
+                - "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}scripts/CreateCommPath.pl"
+                - QSS3Region: !If [GovCloudCondition, "s3-us-gov-west-1", "s3"]
+              authentication: S3AccessCreds
+              mode: 000400
+              owner: root
+              group: root
+          commands:
+            010_enable_cfn_hup:
+              command: systemctl enable cfn-hup.service
+            020_start_cfn_hup:
+              command: systemctl start cfn-hup.service
+            030_initialization:
+              command: !Sub |
+                hostname ${SPSLInstanceNamePrefix}02
+                echo ${SPSLInstanceNamePrefix}02 > /etc/hostname
+                echo '${NewRootPassword}' | passwd --stdin root
+                echo -e '${Node1PrivateIP}\t${SPSLInstanceNamePrefix}01\n' >> /etc/hosts
+                echo -e '${Node2PrivateIP}\t${SPSLInstanceNamePrefix}02\n' >> /etc/hosts
+            040_start_lifekeeper:
+              command: !Sub |
+                /opt/LifeKeeper/bin/lkstart
+                /bin/sleep 60
+            050_create_lk_comm_path:
+              command: !Sub
+                /etc/cfn/CreateCommPath.pl -l ${Node2PrivateIP} -r ${Node1PrivateIP} -s ${SPSLInstanceNamePrefix}01
+              ignoreErrors: false
+          services:
+            sysvinit:
+              cfn-hup:
+                enabled: true
+                ensureRunning: true
+                files: [/etc/cfn/cfn-hup.conf, /etc/cfn/hooks.d/cfn-auto-reloader.conf]
+            lifekeeper:
+              cfn-hup:
+                enabled: true
+                ensureRunning: true
     Properties:
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
@@ -629,16 +712,8 @@ Resources:
       ImageId:
         !If
           - BYOLAMICondition
-          - 
-            !FindInMap
-              - AWSAMIRegionMap
-              - !Ref "AWS::Region"
-              - SPSLRHELBYOL
-          - 
-            !FindInMap
-              - AWSAMIRegionMap
-              - !Ref "AWS::Region"
-              - SPSLRHEL
+          - !FindInMap [AWSAMIRegionMap, !Ref "AWS::Region", SPSLRHELBYOL]
+          - !FindInMap [AWSAMIRegionMap, !Ref "AWS::Region", SPSLRHEL]
       InstanceType: !Ref SPSLInstanceType
       KeyName: !Ref KeyPairName
       NetworkInterfaces:
@@ -657,11 +732,6 @@ Resources:
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash -ex
-          hostname ${SPSLInstanceNamePrefix}02
-          echo ${SPSLInstanceNamePrefix}02 > /etc/hostname
-          echo '${NewRootPassword}' | passwd --stdin root
-          echo -e '${Node1PrivateIP}\t${SPSLInstanceNamePrefix}01\n' >> /etc/hosts
-          echo -e '${Node2PrivateIP}\t${SPSLInstanceNamePrefix}02\n' >> /etc/hosts
           yum install -y python-setuptools
           yum install -y wget
           mkdir -p /opt/aws/bin
@@ -683,7 +753,13 @@ Resources:
           roleName: !Ref InstanceRole
           buckets: !Ref QSS3BucketName
       AWS::CloudFormation::Init:
-        config:
+        configSets:
+          default: 
+            !If
+              - BYOLAMICondition
+              - byol
+              - payg
+        "byol":
           files:
             /etc/cfn/cfn-hup.conf:
               content: !Sub |
@@ -746,15 +822,22 @@ Resources:
               command: systemctl enable cfn-hup.service
             020_start_cfn_hup:
               command: systemctl start cfn-hup.service
-            030_download_lk_license:
+            030_initialization:
+              command: !Sub |
+                hostname ${SPSLInstanceNamePrefix}01
+                echo ${SPSLInstanceNamePrefix}01 > /etc/hostname
+                echo '${NewRootPassword}' | passwd --stdin root
+                echo -e '${Node1PrivateIP}\t${SPSLInstanceNamePrefix}01\n' >> /etc/hosts
+                echo -e '${Node2PrivateIP}\t${SPSLInstanceNamePrefix}02\n' >> /etc/hosts
+            040_download_lk_license:
               command: !Sub |
                 /etc/cfn/InstallLicAndStartLK.pl -u ${SIOSLicenseKeyFtpURL}
               ignoreErrors: false
-            040_create_lk_comm_path:
+            050_create_lk_comm_path:
               command: !Sub |
                 /etc/cfn/CreateCommPath.pl -l ${Node1PrivateIP} -r ${Node2PrivateIP} -s ${SPSLInstanceNamePrefix}02
               ignoreErrors: false
-            050_create_mirror:
+            060_create_mirror:
               command: !Sub |
                 while ! /etc/cfn/CreateMirrorHierarchy.pl -l /dev/xvdca -r /dev/xvdca; do sleep 10; done
           services:
@@ -765,6 +848,98 @@ Resources:
                 files: 
                   - /etc/cfn/cfn-hup.conf
                   - /etc/cfn/hooks.d/cfn-auto-reloader.conf
+        "payg":
+          files:
+            /etc/cfn/cfn-hup.conf:
+              content: !Sub |
+                [main]
+                stack=${AWS::StackId}
+                region=${AWS::Region}
+                interval=1
+              mode: 000400
+              owner: root
+              group: root
+            /etc/cfn/hooks.d/cfn-auto-reloader.conf:
+              content: !Sub |
+                [cfn-auto-reloader-hook]
+                triggers=post.update
+                path=Resources.SPSNode1.Metadata.AWS::CloudFormation::Init
+                action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource SPSNode1 --region ${AWS::Region}
+                runas=root
+              mode: 000400
+              owner: root
+              group: root
+            /lib/systemd/system/cfn-hup.service:
+              content: !Sub |
+                [Unit]
+                Description=cfn-hup daemon
+                [Service]
+                Type=simple
+                ExecStart=/opt/aws/bin/cfn-hup
+                Restart=always
+                [Install]
+                WantedBy=multi-user.target
+              mode: 000400
+              owner: root
+              group: root
+            /etc/cfn/InstallLicAndStartLK.pl:
+              source: !Sub 
+                - "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}scripts/InstallLicAndStartLK.pl"
+                - QSS3Region: !If [GovCloudCondition, "s3-us-gov-west-1", "s3"]
+              authentication: S3AccessCreds
+              mode: 000400
+              owner: root
+              group: root
+            /etc/cfn/CreateCommPath.pl:
+              source: !Sub 
+                - "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}scripts/CreateCommPath.pl"
+                - QSS3Region: !If [GovCloudCondition, "s3-us-gov-west-1", "s3"]
+              authentication: S3AccessCreds
+              mode: 000400
+              owner: root
+              group: root
+            /etc/cfn/CreateMirrorHierarchy.pl:
+              source: !Sub 
+                - "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}scripts/CreateMirrorHierarchy.pl"
+                - QSS3Region: !If [GovCloudCondition, "s3-us-gov-west-1", "s3"]
+              authentication: S3AccessCreds
+              mode: 000400
+              owner: root
+              group: root
+          commands:
+            010_enable_cfn_hup:
+              command: systemctl enable cfn-hup.service
+            020_start_cfn_hup:
+              command: systemctl start cfn-hup.service
+            030_initialization:
+              command: !Sub |
+                hostname ${SPSLInstanceNamePrefix}01
+                echo ${SPSLInstanceNamePrefix}01 > /etc/hostname
+                echo '${NewRootPassword}' | passwd --stdin root
+                echo -e '${Node1PrivateIP}\t${SPSLInstanceNamePrefix}01\n' >> /etc/hosts
+                echo -e '${Node2PrivateIP}\t${SPSLInstanceNamePrefix}02\n' >> /etc/hosts
+            040_start_lifekeeper:
+              command: !Sub |
+                /opt/LifeKeeper/bin/lkstart
+                /bin/sleep 60
+              ignoreErrors: false
+            050_create_lk_comm_path:
+              command: !Sub |
+                /etc/cfn/CreateCommPath.pl -l ${Node1PrivateIP} -r ${Node2PrivateIP} -s ${SPSLInstanceNamePrefix}02
+              ignoreErrors: false
+            060_create_mirror:
+              command: !Sub |
+                while ! /etc/cfn/CreateMirrorHierarchy.pl -l /dev/xvdca -r /dev/xvdca; do sleep 10; done
+          services:
+            sysvinit:
+              cfn-hup:
+                enabled: true
+                ensureRunning: true
+                files: [/etc/cfn/cfn-hup.conf, /etc/cfn/hooks.d/cfn-auto-reloader.conf]
+            lifekeeper:
+              cfn-hup:
+                enabled: true
+                ensureRunning: true
     Properties:
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
@@ -812,11 +987,6 @@ Resources:
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash -ex
-          hostname ${SPSLInstanceNamePrefix}01
-          echo ${SPSLInstanceNamePrefix}01 > /etc/hostname
-          echo '${NewRootPassword}' | passwd --stdin root
-          echo -e '${Node1PrivateIP}\t${SPSLInstanceNamePrefix}01\n' >> /etc/hosts
-          echo -e '${Node2PrivateIP}\t${SPSLInstanceNamePrefix}02\n' >> /etc/hosts
           yum install -y python-setuptools
           yum install -y wget
           mkdir -p /opt/aws/bin
