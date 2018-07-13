@@ -101,7 +101,7 @@
     },
     {
         "ParameterKey": "SIOSLicenseKeyFtpURL",
-        "ParameterValue": "http://ftp.us.sios.com/pickup/EVAL_Andrew_Glenn_andglenn_2018-06-20_SPSLinux/"
+        "ParameterValue": ""
     },
     {
         "ParameterKey": "WindowsJumpboxInstanceType",
