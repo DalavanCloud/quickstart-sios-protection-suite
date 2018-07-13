@@ -343,59 +343,59 @@ Mappings:
       SPSLRHELBYOL: SIOS_Protection_Suite_922_on_RHEL_74_BYOL
       WS2016FULLBASE: Windows_Server-2016-English-Full-Base-2018.05.09
     us-east-1:
-      SPSLRHEL:       ami-
+      SPSLRHEL:       ami-0290ce7d
       SPSLRHELBYOL:   ami-44ae023b
       WS2016FULLBASE: ami-f0df538f
     us-east-2:
-      SPSLRHEL:       ami-
+      SPSLRHEL:       ami-e483ba81
       SPSLRHELBYOL:   ami-78c0f31d
       WS2016FULLBASE: ami-fd0f3298
     us-west-1:
-      SPSLRHEL:       ami-
+      SPSLRHEL:       ami-2ba04148
       SPSLRHELBYOL:   ami-779b8917
       WS2016FULLBASE: ami-36213f56
     us-west-2:
-      SPSLRHEL:       ami-
+      SPSLRHEL:       ami-055d167d
       SPSLRHELBYOL:   ami-e6610e9e
       WS2016FULLBASE: ami-c9deafb1
     ca-central-1:
-      SPSLRHEL:       ami-
+      SPSLRHEL:       ami-44a32120
       SPSLRHELBYOL:   ami-59f7763d
       WS2016FULLBASE: ami-e994148d
     ap-south-1:
-      SPSLRHEL:       ami-
+      SPSLRHEL:       ami-2882b747
       SPSLRHELBYOL:   ami-79446216
       WS2016FULLBASE: ami-bd8daed2
     ap-northeast-2:
-      SPSLRHEL:       ami-
+      SPSLRHEL:       ami-be65d0d0
       SPSLRHELBYOL:   ami-a64ae4c8
       WS2016FULLBASE: ami-2812bb46
     ap-southeast-1:
-      SPSLRHEL:       ami-
+      SPSLRHEL:       ami-dcbeb3a0
       SPSLRHELBYOL:   ami-be0220c2
       WS2016FULLBASE: ami-fd95a081
     ap-southeast-2:
-      SPSLRHEL:       ami-
+      SPSLRHEL:       ami-adfc24cf
       SPSLRHELBYOL:   ami-800fc4e2
       WS2016FULLBASE: ami-307fa852
     eu-central-1:
-      SPSLRHEL:       ami-
+      SPSLRHEL:       ami-f48cb21f
       SPSLRHELBYOL:   ami-56efcabd
       WS2016FULLBASE: ami-68052883
     eu-west-1:
-      SPSLRHEL:       ami-
+      SPSLRHEL:       ami-30737bda
       SPSLRHELBYOL:   ami-267f5f5f
       WS2016FULLBASE: ami-894c7bf0
     eu-west-2:
-      SPSLRHEL:       ami-
+      SPSLRHEL:       ami-9c39d0fb
       SPSLRHELBYOL:   ami-6d93700a
       WS2016FULLBASE: ami-1c46a47b
     eu-west-3:
-      SPSLRHEL:       ami-
+      SPSLRHEL:       ami-acee5ed1
       SPSLRHELBYOL:   ami-5cc07121
       WS2016FULLBASE: ami-918031ec
     sa-east-1:
-      SPSLRHEL:       ami-
+      SPSLRHEL:       ami-81e3c6ed
       SPSLRHELBYOL:   ami-cf99c9a3
       WS2016FULLBASE: ami-efd88583
 Conditions:
