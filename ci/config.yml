@@ -19,9 +19,9 @@ global:
   reporting: true
  
 tests:
-  quickstart-sios-protection-suitet1:
-    parameter_input: quickstart-sios-protection-suite-example-params1.json
-    template_file: quickstart-sios-protection-suite-example1.template
-  quickstart-sios-protection-suitet2:
-    parameter_input: quickstart-sios-protection-suite-example-params2.json
-    template_file: quickstart-sios-protection-suite-example2.template
+  sios-protection-suite-payg:
+    parameter_input: payg.json
+    template_file: sios-protection-suite-master.template
+  sios-protection-suite-byol:
+    parameter_input: byol.json
+    template_file: sios-protection-suite-master.template
