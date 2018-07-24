@@ -100,8 +100,8 @@
         "ParameterValue": "BYOL"
     },
     {
-        "ParameterKey": "SIOSLicenseKeyFtpUrl",
-        "ParameterValue": ""
+        "ParameterKey": "SIOSLicenseKeyFtpURL",
+        "ParameterValue": "override"
     },
     {
         "ParameterKey": "WindowsJumpboxInstanceType",

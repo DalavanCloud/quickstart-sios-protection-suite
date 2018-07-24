@@ -101,7 +101,7 @@
     },
     {
         "ParameterKey": "SIOSLicenseKeyFtpURL",
-        "ParameterValue": ""
+        "ParameterValue": "override"
     },
     {
         "ParameterKey": "WindowsJumpboxInstanceType",
