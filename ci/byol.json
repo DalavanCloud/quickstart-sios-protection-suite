@@ -100,7 +100,7 @@
         "ParameterValue": "BYOL"
     },
     {
-        "ParameterKey": "SIOSLicenseKeyFtpURL",
+        "ParameterKey": "SIOSLicenseKeyFtpUrl",
         "ParameterValue": ""
     },
     {
