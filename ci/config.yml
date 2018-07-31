@@ -22,6 +22,8 @@ tests:
   sios-protection-suite-payg:
     parameter_input: payg.json
     template_file: sios-protection-suite-master.template
+    region: us-east-2
   sios-protection-suite-byol:
     parameter_input: byol.json
     template_file: sios-protection-suite-master.template
+    region: us-east-2
