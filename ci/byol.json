@@ -52,10 +52,6 @@
         "ParameterValue": "10.0.32.100"
     },
     {
-        "ParameterKey": "SwitchableVirtualIP",
-        "ParameterValue": "10.1.0.100"
-    },
-    {
         "ParameterKey": "HomeVolumeType",
         "ParameterValue": "General Purpose (SSD)"
     },
