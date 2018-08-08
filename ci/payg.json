@@ -89,7 +89,7 @@
     },
     {
         "ParameterKey": "NewRootPassword",
-        "ParameterValue": "$[alfred_genpass_16]"
+        "ParameterValue": "$[alfred_genpass_14]"
     },
     {
         "ParameterKey": "SIOSAMIType",
@@ -97,10 +97,18 @@
     },
     {
         "ParameterKey": "SIOSLicenseKeyFtpURL",
-        "ParameterValue": ""
+        "ParameterValue": "override"
     },
     {
         "ParameterKey": "WindowsJumpboxInstanceType",
         "ParameterValue": "t2.micro"
+    },
+    {
+        "ParameterKey":"QSS3BucketName",
+        "ParameterValue":"$[taskcat_autobucket]"
+    },
+    {
+        "ParameterKey":"QSS3KeyPrefix",
+        "ParameterValue":"quickstart-sios-protection-suite/"
     }
 ]
