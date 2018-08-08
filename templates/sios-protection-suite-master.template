@@ -41,7 +41,6 @@ Metadata:
       - SIOSLicenseKeyFtpURL
       - Node1PrivateIP
       - Node2PrivateIP
-      - SwitchableVirtualIP
       - WindowsJumpboxInstanceType
     - Label:
         default: AWS Quick Start Configuration
@@ -91,8 +90,6 @@ Metadata:
         default: Node 1 Private IP Address
       Node2PrivateIP:
         default: Node 2 Private IP Address
-      SwitchableVirtualIP:
-        default: Initial Switchable Virtual IP
       KeyPairName:
         default: Key Pair Name
       NewRootPassword:
@@ -453,8 +450,6 @@ Resources:
           Fn::GetAtt:
           - VPCStack
           - Outputs.PublicSubnet2ID
-        SwitchableVirtualIP:
-          Ref: SwitchableVirtualIP
         HomeVolumeType:
           Ref: HomeVolumeType
         HomeIops:

@@ -41,7 +41,6 @@ Metadata:
       - SIOSLicenseKeyFtpURL
       - Node1PrivateIP
       - Node2PrivateIP
-      - SwitchableVirtualIP
       - WindowsJumpboxInstanceType
     - Label:
         default: AWS Quick Start Configuration
@@ -97,8 +96,6 @@ Metadata:
         default: Public Subnet 1 ID
       PublicSubnet2ID:
         default: Public Subnet 2 ID
-      SwitchableVirtualIP:
-        default: Initial Switchable Virtual IP
       WindowsJumpboxInstanceType:
         default: Instance type to use for optional Windows Jumpbox
       QSS3BucketName:
