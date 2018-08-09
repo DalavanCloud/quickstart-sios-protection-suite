@@ -41,7 +41,6 @@ Metadata:
       - SIOSLicenseKeyFtpURL
       - Node1PrivateIP
       - Node2PrivateIP
-      - SwitchableVirtualIP
       - WindowsJumpboxInstanceType
     - Label:
         default: AWS Quick Start Configuration
@@ -97,8 +96,6 @@ Metadata:
         default: Public Subnet 1 ID
       PublicSubnet2ID:
         default: Public Subnet 2 ID
-      SwitchableVirtualIP:
-        default: Initial Switchable Virtual IP
       WindowsJumpboxInstanceType:
         default: Instance type to use for optional Windows Jumpbox
       QSS3BucketName:
@@ -107,16 +104,16 @@ Metadata:
         default: Quick Start S3 Key Prefix
 Parameters:
   BastionSecurityGroupID:
-    Description: ID of the bastion host security group to enable SSH connections (e.g., sg-1a23b456)
+    Description: ID of the bastion host security group to enable SSH connections (e.g., sg-1a23b456).
     Type: AWS::EC2::SecurityGroup::Id
   SPSLInstanceNamePrefix:
-    Description: Name for the SIOS Protection Suite instance that is deployed to EC2
+    Description: Name prefix for the SIOS Protection Suite servers.
     Type: String
-    Default: "SPS-L-"
+    Default: SPS-L-
   SPSLInstanceType:
-    Description: SIOS Protection Suite server EC2 instance type
+    Description: Amazon EC2 instance type for the SIOS Protection Suite servers.
     Type: String
-    Default: "t2.medium"
+    Default: t2.medium
     AllowedValues:
     - t2.medium
     - t2.large
@@ -169,126 +166,115 @@ Parameters:
     - cg1.4xlarge
     ConstraintDescription: must be a valid EC2 instance type.
   HomeDeleteOnTermination:
-    Description: Delete Bitbucket home directory volume when the file server instance is terminated.  You must back up your data before terminating your file server instance if this option is set to 'true'
+    Description: Delete home directory volume when the SIOS Protection Suite server instance is terminated. Keep the default setting of true to delete the home directory when the instance is terminated. If true, you must back up your data before terminating your instance. Set to false to keep the home directory volume upon termination.
     Type: String
     Default: "true"
     AllowedValues: [true, false]
     ConstraintDescription: Must be 'true' or 'false'.
   HomeIops:
-    Description: "Home directory IOPS (100 - 20000, only used with Provisioned IOPS).  Note: The ratio of IOPS provisioned to the volume size requested can be a maximum of 50; for example, a volume with 5000 IOPS must be at least 100 GiB"
+    Description: IOPS for the home directory. This value is used only when the Home volume type parameter is set to Provisioned IOPS. Allowed range is 100-20,000. The ratio of IOPS to volume size must be 50 or less. For example, if you set this parameter to 5000 IOPS, the home directory size must be at least 100 GiB.
     Type: Number
     Default: 1000
     MinValue: 100
     MaxValue: 20000
     ConstraintDescription: Must be in the range 100 - 20000.
   HomeSize:
-    Description: Home directory storage size, in gibibytes (GiB) (100 - 16384)
+    Description: Storage size for the home directory, in GiB. Allowed range is 25 - 16,384.
     Type: Number
     Default: 25
     MinValue: 25
     MaxValue: 16384
     ConstraintDescription: Must be in the range 100 - 16384.
   HomeVolumeType:
+    Description: Volume type for the home directory.
     Type: String
     Default: "Provisioned IOPS"
     AllowedValues: ["General Purpose (SSD)", "Provisioned IOPS"]
     ConstraintDescription: Must be 'General Purpose (SSD)' or 'Provisioned IOPS'.
   MirrorDeleteOnTermination:
-    Description: Delete Bitbucket Mirror directory volume when the file server instance is terminated.  You must back up your data before terminating your file server instance if this option is set to 'true'
+    Description: Delete the replicated volume when the SIOS Protection Suite server instance is terminated. Keep the default setting of true to delete the home directory when the instance is terminated. If true, you must back up your data before terminating your instance. Set to false to keep the replicated volume upon termination.
     Type: String
     Default: "true"
     AllowedValues: [true, false]
     ConstraintDescription: Must be 'true' or 'false'.
   MirrorIops:
-    Description: "Mirror directory IOPS (100 - 20000, only used with Provisioned IOPS).  Note: The ratio of IOPS provisioned to the volume size requested can be a maximum of 50; for example, a volume with 5000 IOPS must be at least 100 GiB"
+    Description: IOPS for the mirror volume. This value is used only when the Mirror volume type parameter is set to Provisioned IOPS. Allowed range is 100 - 20,000. The ratio of IOPS to volume size must be 50 or less. For example, if you set this parameter to 5000 IOPS, the home directory size must be at least 100 GiB.
     Type: Number
     Default: 1000
     MinValue: 100
     MaxValue: 20000
     ConstraintDescription: Must be in the range 100 - 20000.
   MirrorSize:
-    Description: Mirror directory storage size, in gibibytes (GiB) (100 - 16384)
+    Description: Storage size for the replicated volume, in GiB. Allowed range is 100 - 16,384.
     Type: Number
     Default: 100
     MinValue: 100
     MaxValue: 16384
     ConstraintDescription: Must be in the range 100 - 16384.
   MirrorVolumeType:
+    Description: Volume type for the replicated data directory.
     Type: String
     Default: "Provisioned IOPS"
     AllowedValues: ["General Purpose (SSD)", "Provisioned IOPS"]
     ConstraintDescription: Must be 'General Purpose (SSD)' or 'Provisioned IOPS'.
   KeyPairName:
-    Description: Name of an existing EC2 key pair. All instances will launch with
-      this key pair.
+    Description: Public/private key pair, which allows you to connect securely to your instance after it launches. When you created an AWS account, this is the key pair you created in your preferred region. 
     Type: AWS::EC2::KeyPair::KeyName
   NewRootPassword:
-    Description: Password for predefined siosadmin user used to administer SIOS Protection Suite (Min.
-      Length of 8 Characters, Max Length of 16 Characters)
+    Description: Password for predefined admin user used to administer SIOS Protection Suite (Min. Length of 8 Characters, Max Length of 16 Characters).
     Type: String
     MinLength: 8
     MaxLength: 16
     NoEcho: true
   SIOSAMIType:
-    Description: SIOS Protection Suite AMI license model
+    Description: SIOS Protection Suite AMI license model to use for cluster nodes.
     Type: String
-    Default: "PAYG"
+    Default: PAYG
     AllowedValues:
     - BYOL
     - PAYG
   SIOSLicenseKeyFtpURL:
-    Description: URL used to obtain license key for SIOS DataKeeper software
+    Description: URL used to obtain license key for SIOS Protection Suite for Linux software.
     Type: String
   VPCID:
-    Description: ID of your existing VPC for deployment
+    Description: ID of your existing VPC (e.g., vpc-0343606e).
     Type: AWS::EC2::VPC::Id
   PrivateSubnet1ID:
-    Description: ID of private subnet 1 in Availability Zone 1 for the SIOS Protection Suite instances
-      (e.g., subnet-a0246dcd)
+    Description: ID of the private subnet in Availability Zone 1 in your existing VPC (e.g., subnet-a0246dcd).
     Type: AWS::EC2::Subnet::Id
   PrivateSubnet1CIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/x
-    Description: The CIDR IP range for Private Subnet 1A
-    Default: "10.0.0.0/19"
+    Description: CIDR IP range for the private subnet located in Availability Zone 1.
+    Default: 10.0.0.0/19
     Type: String
   Node1PrivateIP:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$
     ConstraintDescription: IPv4 parameter must be in the form x.x.x.x and belong to Private Subnet 1A
-    Description: Private IPv4 address in subnet 1 in Availability Zone 1 for SPS Node1
-    Default: "10.0.0.100"
+    Description: Primary private IP for the cluster node located in Availability Zone 1.
+    Default: 10.0.0.100
     Type: String
   PrivateSubnet2ID:
-    Description: ID of private subnet 2 in Availability Zone 2 for the SIOS Protection Suite instances
-      (e.g., subnet-b1f432cd)
+    Description: ID of private subnet 2 in Availability Zone 2 for the SIOS Protection Suite instances (e.g., subnet-a0246dcd).
     Type: AWS::EC2::Subnet::Id
   PrivateSubnet2CIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/x
-    Description: The CIDR IP range for Private Subnet 2A
-    Default: "10.0.32.0/19"
+    Description: CIDR IP range for the private subnet located in Availability Zone 2.
+    Default: 10.0.32.0/19
     Type: String
   Node2PrivateIP:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$
     ConstraintDescription: IPv4 parameter must be in the form x.x.x.x and belong to Private Subnet 2A
-    Description: Private IPv4 address in subnet 2 in Availability Zone 2 for SPS Node2
-    Default: "10.0.32.100"
+    Description: Primary private IP for the cluster node located in Availability Zone 2.
+    Default: 10.0.32.100
     Type: String
   PublicSubnet1ID:
-    Description: ID of public subnet 1 in Availability Zone 1 for the ELB load balancer
-      (e.g., subnet-9bc642ac)
+    Description: ID of public subnet 1 in Availability Zone 1 for the ELB load balancer (e.g., subnet-a0246dcd).
     Type: AWS::EC2::Subnet::Id
   PublicSubnet2ID:
-    Description: ID of public subnet 2 in Availability Zone 2 for the ELB load balancer
-      (e.g., subnet-e3246d8e)
+    Description: ID of public subnet 2 in Availability Zone 2 for the ELB load balancer (e.g., subnet-a0246dcd).
     Type: AWS::EC2::Subnet::Id
-  SwitchableVirtualIP:
-    Description: Initial switchable Virtual IP
-    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$
-    ConstraintDescription: IPv4 parameter must be in the form x.x.x.x and NOT belong to the VPC address range (i.e if the 
-      VPC base address range is 10.0.0.0/16, then 10.1.0.0 would be a valid address for this parameter)
-    Default: "10.1.0.100"
-    Type: String
   WindowsJumpboxInstanceType:
     AllowedValues:
     - None
@@ -305,26 +291,19 @@ Parameters:
     - m4.2xlarge
     - m4.4xlarge
     Default: None
-    Description: Amazon EC2 instance type for the bastion instances
+    Description: Amazon EC2 instance type for an optional Windows Jumpbox.
     Type: String
   QSS3BucketName:
     AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
-    ConstraintDescription: Quick Start bucket name can include numbers, lowercase
-      letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen
-      (-).
-    Default: "quickstart-reference"
-    Description: S3 bucket name for the Quick Start assets. This string can include
-      numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start
-      or end with a hyphen (-).
+    ConstraintDescription: Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).
+    Default: quickstart-reference
+    Description: S3 bucket where the Quick Start templates and scripts are installed. Use this parameter to specify the S3 bucket name you’ve created for your copy of Quick Start assets, if you decide to customize or extend the Quick Start for your own use. The bucket name can include numbers, lowercase letters, uppercase letters, and hyphens, but should not start or end with a hyphen.
     Type: String
   QSS3KeyPrefix:
     AllowedPattern: ^[0-9a-zA-Z-/]*$
-    ConstraintDescription: Quick Start key prefix can include numbers, lowercase letters,
-      uppercase letters, hyphens (-), and forward slash (/).
-    Default: "sios/protection-suite/latest/"
-    Description: S3 key prefix for the Quick Start assets. Quick Start key prefix
-      can include numbers, lowercase letters, uppercase letters, hyphens (-), and
-      forward slash (/).
+    ConstraintDescription: Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).
+    Default: sios/protection-suite/latest/
+    Description: The S3 key name prefix used to simulate a folder for your copy of Quick Start assets, if you decide to customize or extend the Quick Start for your own use. This prefix can include numbers, lowercase letters, uppercase letters, hyphens, and forward slashes, and should end with a forward slash. 
     Type: String
 Rules:
   SubnetsInVPC:
