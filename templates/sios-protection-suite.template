@@ -586,10 +586,15 @@ Resources:
                 echo '${NewRootPassword}' | passwd --stdin root
                 echo -e '${Node1PrivateIP}\t${SPSLInstanceNamePrefix}01\n' >> /etc/hosts
                 echo -e '${Node2PrivateIP}\t${SPSLInstanceNamePrefix}02\n' >> /etc/hosts
-            040_download_lk_license:
+            035_fetch_lk_license:
               command: !Sub
-                /etc/cfn/InstallLicAndStartLK.pl -u "${SIOSLicenseKeyFtpURL}"
+                curl -o '/tmp/license.lic' -k '${SIOSLicenseKeyFtpURL}'
+            040_install_lk_license:
+              command: !Sub
+                /etc/cfn/InstallLicAndStartLK.pl -u 'file:///tmp/license.lic'
               ignoreErrors: false
+            045_delete_license_from_disk:
+                command: rm /tmp/license.lic
             050_create_lk_comm_path:
               command: !Sub
                 /etc/cfn/CreateCommPath.pl -l ${Node2PrivateIP} -r ${Node1PrivateIP} -s ${SPSLInstanceNamePrefix}01
