@@ -24,4 +24,3 @@ tests:
   sios-protection-suite-byol:
     parameter_input: byol.json
     template_file: sios-protection-suite-master.template
-    region: us-east-1
