@@ -808,18 +808,23 @@ Resources:
               command: systemctl start cfn-hup.service
             030_initialization:
               command: !Sub |
-                hostname ${SPSLInstanceNamePrefix}01
-                echo ${SPSLInstanceNamePrefix}01 > /etc/hostname
+                hostname ${SPSLInstanceNamePrefix}02
+                echo ${SPSLInstanceNamePrefix}02 > /etc/hostname
                 echo '${NewRootPassword}' | passwd --stdin root
                 echo -e '${Node1PrivateIP}\t${SPSLInstanceNamePrefix}01\n' >> /etc/hosts
                 echo -e '${Node2PrivateIP}\t${SPSLInstanceNamePrefix}02\n' >> /etc/hosts
-            040_download_lk_license:
-              command: !Sub |
-                /etc/cfn/InstallLicAndStartLK.pl -u ${SIOSLicenseKeyFtpURL}
+            035_fetch_lk_license:
+              command: !Sub
+                curl -o '/tmp/license.lic' -k '${SIOSLicenseKeyFtpURL}'
+            040_install_lk_license:
+              command: !Sub
+                /etc/cfn/InstallLicAndStartLK.pl -u 'file:///tmp/license.lic'
               ignoreErrors: false
+            045_delete_license_from_disk:
+                command: rm /tmp/license.lic
             050_create_lk_comm_path:
-              command: !Sub |
-                /etc/cfn/CreateCommPath.pl -l ${Node1PrivateIP} -r ${Node2PrivateIP} -s ${SPSLInstanceNamePrefix}02
+              command: !Sub
+                /etc/cfn/CreateCommPath.pl -l ${Node2PrivateIP} -r ${Node1PrivateIP} -s ${SPSLInstanceNamePrefix}01
               ignoreErrors: false
             060_create_mirror:
               command: !Sub |
