@@ -16,6 +16,7 @@ use LK;
 use strict;
 use Getopt::Std;
 use vars qw($opt_u);
+use vars qw($opt_k);
 
 my $DEFAULT_LIC_NAME = "/evalkeys.lic";
 my $ret;
@@ -38,7 +39,11 @@ sub usage {
 #
 sub GetLicenseFile {
 	my $licenseURL = shift;
+	my $ignoreSSL = shift;
 	my $cmd = "curl --connect-timeout 5 -s -S";
+	if (defined $ignoreSSL){
+		$cmd = $cmd . " -k";
+	}
 	my @results;
 	my $retCode;
 	my $localPath = "/tmp/LK4L.lic";
@@ -46,9 +51,9 @@ sub GetLicenseFile {
 
 	# Setup the full URL path to the license
 	if ($licenseURL =~ m/.lic$/) {
-		$cmd = $cmd . " $licenseURL";
+		$cmd = $cmd . " '$licenseURL'";
 	} else {
-		$cmd = $cmd . " $licenseURL" . $DEFAULT_LIC_NAME;
+		$cmd = $cmd . " '$licenseURL'" . $DEFAULT_LIC_NAME;
 	}
 
 	# Get the license file
@@ -162,7 +167,7 @@ sub StartLifeKeeper {
 #
 # Main body of script
 #
-getopts('u:');
+getopts('ku:');
 if ($opt_u eq '') {
 	usage();
 }
@@ -171,7 +176,7 @@ $ret = CheckLKStatus();
 if (!$ret) {
 	# LifeKeeper is not running so assume we need to retrieve the license,
 	# install it and then start LifeKeeper.
-	my $licFile = GetLicenseFile($opt_u);
+	my $licFile = GetLicenseFile($opt_u, $opt_k);
 	if (!defined $licFile) {
 		exit 1;
 	}
