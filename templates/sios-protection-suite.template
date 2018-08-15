@@ -588,7 +588,7 @@ Resources:
                 echo -e '${Node2PrivateIP}\t${SPSLInstanceNamePrefix}02\n' >> /etc/hosts
             040_download_lk_license:
               command: !Sub
-                /etc/cfn/InstallLicAndStartLK.pl -u "${SIOSLicenseKeyFtpURL}"
+                /etc/cfn/InstallLicAndStartLK.pl -ku '${SIOSLicenseKeyFtpURL}'
               ignoreErrors: false
             050_create_lk_comm_path:
               command: !Sub
