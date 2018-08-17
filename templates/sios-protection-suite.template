@@ -401,6 +401,24 @@ Resources:
           Action:
           - sts:AssumeRole
       Path: /
+  RolePolicy:
+    Type: "AWS::IAM::Policy"
+    Properties: 
+      PolicyName: s3readaccess
+      PolicyDocument: 
+        Version: 2012-10-17
+        Statement: 
+          - 
+            Effect: Allow
+            Action: s3:ListBucket
+            Resource: "*"
+          - 
+            Effect: Allow
+            Action: s3:GetObject
+            Resource: "*"
+      Roles: 
+        - 
+          Ref: InstanceRole
   InstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
