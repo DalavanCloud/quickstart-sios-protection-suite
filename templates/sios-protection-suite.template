@@ -401,6 +401,24 @@ Resources:
           Action:
           - sts:AssumeRole
       Path: /
+  RolePolicy:
+    Type: "AWS::IAM::Policy"
+    Properties: 
+      PolicyName: s3readaccess
+      PolicyDocument: 
+        Version: 2012-10-17
+        Statement: 
+          - 
+            Effect: Allow
+            Action: s3:ListBucket
+            Resource: "*"
+          - 
+            Effect: Allow
+            Action: s3:GetObject
+            Resource: "*"
+      Roles: 
+        - 
+          Ref: InstanceRole
   InstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
@@ -586,15 +604,10 @@ Resources:
                 echo '${NewRootPassword}' | passwd --stdin root
                 echo -e '${Node1PrivateIP}\t${SPSLInstanceNamePrefix}01\n' >> /etc/hosts
                 echo -e '${Node2PrivateIP}\t${SPSLInstanceNamePrefix}02\n' >> /etc/hosts
-            035_fetch_lk_license:
+            040_download_lk_license:
               command: !Sub
-                curl -o '/tmp/license.lic' -k '${SIOSLicenseKeyFtpURL}'
-            040_install_lk_license:
-              command: !Sub
-                /etc/cfn/InstallLicAndStartLK.pl -u 'file:///tmp/license.lic'
+                /etc/cfn/InstallLicAndStartLK.pl -u ${SIOSLicenseKeyFtpURL}
               ignoreErrors: false
-            045_delete_license_from_disk:
-                command: rm /tmp/license.lic
             050_create_lk_comm_path:
               command: !Sub
                 /etc/cfn/CreateCommPath.pl -l ${Node2PrivateIP} -r ${Node1PrivateIP} -s ${SPSLInstanceNamePrefix}01
@@ -813,15 +826,10 @@ Resources:
                 echo '${NewRootPassword}' | passwd --stdin root
                 echo -e '${Node1PrivateIP}\t${SPSLInstanceNamePrefix}01\n' >> /etc/hosts
                 echo -e '${Node2PrivateIP}\t${SPSLInstanceNamePrefix}02\n' >> /etc/hosts
-            035_fetch_lk_license:
-              command: !Sub
-                curl -o '/tmp/license.lic' -k '${SIOSLicenseKeyFtpURL}'
-            040_install_lk_license:
-              command: !Sub
-                /etc/cfn/InstallLicAndStartLK.pl -u 'file:///tmp/license.lic'
+            040_download_lk_license:
+              command: !Sub |
+                /etc/cfn/InstallLicAndStartLK.pl -u ${SIOSLicenseKeyFtpURL}
               ignoreErrors: false
-            045_delete_license_from_disk:
-                command: rm /tmp/license.lic
             050_create_lk_comm_path:
               command: !Sub |
                 /etc/cfn/CreateCommPath.pl -l ${Node1PrivateIP} -r ${Node2PrivateIP} -s ${SPSLInstanceNamePrefix}02

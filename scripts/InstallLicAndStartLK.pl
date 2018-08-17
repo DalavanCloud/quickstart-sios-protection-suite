@@ -43,12 +43,36 @@ sub GetLicenseFile {
 	my $retCode;
 	my $localPath = "/tmp/LK4L.lic";
 	my @cmdOutput;
+	my $s3URI = 0;
 
-	# Setup the full URL path to the license
+	# Check to see if the url is actually an s3 uri
+	if ($licenseURL =~ /^s3:\/\/(.*)/) {
+		$cmd = "/usr/local/bin/aws s3 cp";
+		
+		# Lop off the trailing slash if there is one. 
+		if ($licenseURL =~ /(.*)\/$/) {
+			chop $licenseURL;
+		}
+		$s3URI = 1;
+	} 
+	
+	# Append default license filename to the end of the URL if 
+	# no license filename already present
 	if ($licenseURL =~ m/.lic$/) {
 		$cmd = $cmd . " $licenseURL";
 	} else {
 		$cmd = $cmd . " $licenseURL" . $DEFAULT_LIC_NAME;
+	}
+
+	# Download file from S3 URI, and save it to localPath location.
+	if ($s3URI) {
+		$cmd = $cmd . " $localPath";
+		@results = `$cmd 2>&1`;
+		if($?) {
+			return $localPath;
+		} else {
+			return undef;
+		}
 	}
 
 	# Get the license file
