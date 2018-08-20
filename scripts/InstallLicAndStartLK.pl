@@ -68,7 +68,16 @@ sub GetLicenseFile {
 	if ($s3URI) {
 		$cmd = $cmd . " $localPath";
 		@results = `$cmd 2>&1`;
-		if($?) {
+        # The expected return code here is zero.
+        # However, zero in perl is the boolean false.
+        # if(False) does not evaluate to True, it evaulates to False.
+        #
+        # DB<3> if (0) { print "this is true" };
+        #
+        # DB<4> if (!0) { print "this is true" };
+        #     this is true
+        #
+		if(!$?) {
 			return $localPath;
 		} else {
 			return undef;
