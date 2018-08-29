@@ -18,6 +18,7 @@ Metadata:
       - KeyPairName
       - BastionAMIOS
       - BastionInstanceType
+      - NumBastionHosts
       - VPCCIDR
       - PrivateSubnet1CIDR
       - PrivateSubnet2CIDR
@@ -56,6 +57,8 @@ Metadata:
         default: Bastion AMI Operating System
       BastionInstanceType:
         default: Bastion Instance Type
+      NumBastionHosts:
+        default: Number of Bastion Hosts.
       VPCCIDR:
         default: Global CIDR block for entire VPC
       PrivateSubnet1CIDR:
@@ -309,6 +312,15 @@ Parameters:
   KeyPairName:
     Description: Public/private key pair, which allows you to connect securely to your instance after it launches. When you created an AWS account, this is the key pair you created in your preferred region. 
     Type: AWS::EC2::KeyPair::KeyName
+  NumBastionHosts:
+    AllowedValues:
+        - "1"
+        - "2"
+        - "3"
+        - "4"
+    Default: "1"
+    Description: "Enter the number of bastion hosts to create"
+    Type: "String"
   NewRootPassword:
     Description: Password for predefined admin user used to administer SIOS Protection Suite (Min. Length of 8 Characters, Max Length of 16 Characters).
     Type: String
@@ -381,6 +393,8 @@ Resources:
         EnableX11Forwarding: true
         KeyPairName:
           Ref: KeyPairName
+        NumBastionHosts:
+          Ref: NumBastionHosts
         PublicSubnet1ID:
           Fn::GetAtt:
           - VPCStack

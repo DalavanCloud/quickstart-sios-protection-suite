@@ -714,7 +714,7 @@ Resources:
       InstanceType: !Ref SPSLInstanceType
       KeyName: !Ref KeyPairName
       NetworkInterfaces:
-        - GroupSet: 
+        - GroupSet: /
           - !Ref SPSLSecurityGroup
           - !Ref BastionSecurityGroupID
           - !Ref JavaSecurityGroup
