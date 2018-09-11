@@ -48,7 +48,7 @@ Metadata:
       Parameters:
       - QSS3BucketName
       - QSS3KeyPrefix
-:w    ParameterLabels:
+    ParameterLabels:
       BastionSecurityGroupID:
         default: Bastion Security Group ID
       SPSLInstanceNamePrefix:
@@ -190,8 +190,7 @@ Parameters:
     MaxValue: 20000
     ConstraintDescription: Must be in the range 100 - 20000.
   HomeSize:
-    Description: Storage size for the home directory, in GiB. Allowed range is 25
-      - 16,384.
+    Description: Storage size for the home directory, in GiB. Allowed range is 25 - 16,384.
     Type: Number
     Default: 25
     MinValue: 25
