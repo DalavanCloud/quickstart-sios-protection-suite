@@ -643,7 +643,7 @@ Resources:
                     - s3-us-gov-west-1
                     - s3
               authentication: S3AccessCreds
-              mode: 400
+              mode: 700
               owner: root
               group: root
             /etc/cfn/CreateCommPath.pl:
@@ -656,7 +656,7 @@ Resources:
                     - s3-us-gov-west-1
                     - s3
               authentication: S3AccessCreds
-              mode: 400
+              mode: 700
               owner: root
               group: root
           commands:
@@ -704,7 +704,7 @@ Resources:
                 path=Resources.SPSNode1.Metadata.AWS::CloudFormation::Init
                 action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource SPSNode1 --region ${AWS::Region}
                 runas=root
-              mode: 400
+              mode: 700
               owner: root
               group: root
             /lib/systemd/system/cfn-hup.service:
@@ -717,7 +717,7 @@ Resources:
                 Restart=always
                 [Install]
                 WantedBy=multi-user.target
-              mode: 400
+              mode: 700
               owner: root
               group: root
             /etc/cfn/CreateCommPath.pl:
@@ -730,7 +730,7 @@ Resources:
                     - s3-us-gov-west-1
                     - s3
               authentication: S3AccessCreds
-              mode: 400
+              mode: 700
               owner: root
               group: root
           commands:
@@ -897,7 +897,7 @@ Resources:
                     - s3-us-gov-west-1
                     - s3
               authentication: S3AccessCreds
-              mode: 400
+              mode: 700
               owner: root
               group: root
             /etc/cfn/CreateCommPath.pl:
@@ -910,7 +910,7 @@ Resources:
                     - s3-us-gov-west-1
                     - s3
               authentication: S3AccessCreds
-              mode: 400
+              mode: 700
               owner: root
               group: root
             /etc/cfn/CreateMirrorHierarchy.pl:
@@ -923,7 +923,7 @@ Resources:
                     - s3-us-gov-west-1
                     - s3
               authentication: S3AccessCreds
-              mode: 400
+              mode: 700
               owner: root
               group: root
           commands:
@@ -1001,7 +1001,7 @@ Resources:
                     - s3-us-gov-west-1
                     - s3
               authentication: S3AccessCreds
-              mode: 400
+              mode: 700
               owner: root
               group: root
             /etc/cfn/CreateCommPath.pl:
@@ -1014,7 +1014,7 @@ Resources:
                     - s3-us-gov-west-1
                     - s3
               authentication: S3AccessCreds
-              mode: 400
+              mode: 700
               owner: root
               group: root
             /etc/cfn/CreateMirrorHierarchy.pl:
@@ -1027,7 +1027,7 @@ Resources:
                     - s3-us-gov-west-1
                     - s3
               authentication: S3AccessCreds
-              mode: 400
+              mode: 700
               owner: root
               group: root
           commands:
