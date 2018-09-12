@@ -676,7 +676,7 @@ Resources:
               ignoreErrors: false
             050_create_lk_comm_path:
               command: !Sub |
-                /etc/cfn/CreateCommPath.pl -l ${Node2PrivateIP} -r ${Node1PrivateIP} -s ${SPSLInstanceNamePrefix}01'
+                /etc/cfn/CreateCommPath.pl -l ${Node2PrivateIP} -r ${Node1PrivateIP} -s ${SPSLInstanceNamePrefix}01
               ignoreErrors: false
           services:
             sysvinit:
@@ -751,7 +751,7 @@ Resources:
                 /bin/sleep 60
             050_create_lk_comm_path:
               command: !Sub |
-                /etc/cfn/CreateCommPath.pl -l ${Node2PrivateIP} -r ${Node1PrivateIP} -s ${SPSLInstanceNamePrefix}01'
+                /etc/cfn/CreateCommPath.pl -l ${Node2PrivateIP} -r ${Node1PrivateIP} -s ${SPSLInstanceNamePrefix}01
               ignoreErrors: false
           services:
             sysvinit:
