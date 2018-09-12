@@ -50,13 +50,13 @@ Metadata:
       - QSS3KeyPrefix
     ParameterLabels:
       BastionSecurityGroupID:
-        default: Bastion Security Group ID
+        default: Bastion security group ID
       SPSLInstanceNamePrefix:
         default: SIOS Protection Suite instance name prefix
       SPSLInstanceType:
         default: SIOS Protection Suite instance type
       HomeDeleteOnTermination:
-        default: Delete Home on termination
+        default: Delete home on termination
       HomeIops:
         default: Home directory IOPS
       HomeVolumeType:
@@ -64,7 +64,7 @@ Metadata:
       HomeSize:
         default: Home directory size
       MirrorDeleteOnTermination:
-        default: Delete Mirror on termination
+        default: Delete mirror on termination
       MirrorIops:
         default: Mirror directory IOPS
       MirrorVolumeType:
@@ -72,9 +72,9 @@ Metadata:
       MirrorSize:
         default: Mirror directory size
       KeyPairName:
-        default: Key Pair Name
+        default: Key pair name
       NewRootPassword:
-        default: New Root Password
+        default: new root password
       SIOSAMIType:
         default: License model for SIOS AMI
       SIOSLicenseKeyFtpURL:
@@ -82,27 +82,27 @@ Metadata:
       VPCID:
         default: VPC ID
       PrivateSubnet1ID:
-        default: Private Subnet 1 ID
+        default: Private subnet 1 ID
       PrivateSubnet1CIDR:
-        default: CIDR block for Private Subnet 1A
+        default: CIDR block for private subnet 1A
       Node1PrivateIP:
-        default: Node 1 Private IP Address
+        default: Node 1 private IP address
       PrivateSubnet2ID:
-        default: Private Subnet 2 ID
+        default: Private subnet 2 ID
       PrivateSubnet2CIDR:
-        default: CIDR block for Private Subnet 2A
+        default: CIDR block for private subnet 2A
       Node2PrivateIP:
-        default: Node 2 Private IP Address
+        default: Node 2 private IP address
       PublicSubnet1ID:
-        default: Public Subnet 1 ID
+        default: Public subnet 1 ID
       PublicSubnet2ID:
-        default: Public Subnet 2 ID
+        default: Public subnet 2 ID
       WindowsJumpboxInstanceType:
-        default: Instance type to use for optional Windows Jumpbox
+        default: Instance type to use for optional Windows jumpbox
       QSS3BucketName:
-        default: Quick Start S3 Bucket Name
+        default: Quick Start S3 bucket name
       QSS3KeyPrefix:
-        default: Quick Start S3 Key Prefix
+        default: Quick Start S3 key prefix
 Parameters:
   BastionSecurityGroupID:
     Description: ID of the bastion host security group to enable SSH connections (e.g.,
@@ -337,7 +337,7 @@ Parameters:
     ConstraintDescription: Quick Start bucket name can include numbers, lowercase
       letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen
       (-).
-    Default: quickstart-reference
+    Default: aws-quickstart
     Description: S3 bucket where the Quick Start templates and scripts are installed.
       Use this parameter to specify the S3 bucket name you’ve created for your copy
       of Quick Start assets, if you decide to customize or extend the Quick Start

@@ -50,31 +50,31 @@ Metadata:
       - QSS3KeyPrefix
     ParameterLabels:
       RemoteAccessCIDR:
-        default: Allowed Bastion External Access CIDR
+        default: Allowed bastion external access CIDR
       AvailabilityZones:
-        default: Availability Zones
+        default: Availability zones
       BastionAMIOS:
-        default: Bastion AMI Operating System
+        default: Bastion AMI operating system
       BastionInstanceType:
-        default: Bastion Instance Type
+        default: Bastion instance type
       NumBastionHosts:
-        default: Number of Bastion Hosts.
+        default: Number of bastion hosts.
       VPCCIDR:
         default: Global CIDR block for entire VPC
       PrivateSubnet1CIDR:
-        default: CIDR block for Private Subnet 1A
+        default: CIDR block for private subnet 1A
       PrivateSubnet2CIDR:
-        default: CIDR block for Private Subnet 2A
+        default: CIDR block for private subnet 2A
       PublicSubnet1CIDR:
-        default: CIDR block for Public Subnet 1
+        default: CIDR block for public subnet 1
       PublicSubnet2CIDR:
-        default: CIDR block for Public Subnet 2
+        default: CIDR block for public subnet 2
       SPSLInstanceNamePrefix:
-        default: SIOS Protection Suite Instance Name
+        default: SIOS Protection Suite instance name
       SPSLInstanceType:
-        default: SIOS Protection Suite Instance Type
+        default: SIOS Protection Suite instance type
       HomeDeleteOnTermination:
-        default: Delete Home on termination
+        default: Delete home on termination
       HomeIops:
         default: Home directory IOPS
       HomeVolumeType:
@@ -82,7 +82,7 @@ Metadata:
       HomeSize:
         default: Home directory size
       MirrorDeleteOnTermination:
-        default: Delete Mirror on termination
+        default: Delete mirror on termination
       MirrorIops:
         default: Mirror directory IOPS
       MirrorVolumeType:
@@ -90,23 +90,23 @@ Metadata:
       MirrorSize:
         default: Mirror directory size
       Node1PrivateIP:
-        default: Node 1 Private IP Address
+        default: Node 1 private IP address
       Node2PrivateIP:
-        default: Node 2 Private IP Address
+        default: Node 2 private IP address
       KeyPairName:
-        default: Key Pair Name
+        default: Key pair name
       NewRootPassword:
-        default: Admin Password
+        default: new root password
       SIOSAMIType:
         default: License model for SIOS AMI
       SIOSLicenseKeyFtpURL:
-        default: SIOS Protection Suite License URL
+        default: SIOS Protection Suite license URL
       WindowsJumpboxInstanceType:
-        default: Optional Windows Jumpbox Instance Type
+        default: Optional Windows jumpbox instance type
       QSS3BucketName:
-        default: Quick Start S3 Bucket Name
+        default: Quick Start S3 bucket name
       QSS3KeyPrefix:
-        default: Quick Start S3 Key Prefix
+        default: Quick Start S3 key prefix
 Parameters:
   RemoteAccessCIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
