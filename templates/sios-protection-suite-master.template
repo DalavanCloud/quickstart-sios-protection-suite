@@ -6,7 +6,7 @@ Description: This master template creates a VPC infrastructure for a multi-AZ, m
   creates EC2 instances and related resources. You will be billed for the AWS resources 
   used if you create a stack from this template. SIOS Protection Suite for Linux is licensed 
   separately. Please contact SIOS at support@us.sios.com or visit 
-  https://us.sios.com/demo-request/ for demo licenses. (qs-1oqhlks0l)
+  https://us.sios.com/demo-request/ for demo licenses. (qs-1oqirsqja)
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
