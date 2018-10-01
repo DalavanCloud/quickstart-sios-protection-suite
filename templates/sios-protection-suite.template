@@ -190,7 +190,8 @@ Parameters:
     MaxValue: 20000
     ConstraintDescription: Must be in the range 100 - 20000.
   HomeSize:
-    Description: Storage size for the home directory, in GiB. Allowed range is 25 - 16,384.
+    Description: Storage size for the home directory, in GiB. Allowed range is 25
+      - 16,384.
     Type: Number
     Default: 25
     MinValue: 25
@@ -369,63 +370,63 @@ Mappings:
     AMI:
       SPSLRHEL: SIOS Protection Suite for Linux 9.2.2 on RHEL 7.4-273a5693-de58-4437-87fa-d3b56f714e95-ami-dc6835a3.4
       SPSLRHELBYOL: SIOS Protection Suite for Linux 9.2.2 on RHEL 7.4 BYOL-036d4d80-182d-460e-b9cc-01ebc2f842e4-ami-c09d45bf.4
-      WS2016FULLBASE: Windows_Server-2016-English-Full-Base-2018.08.15
+      WS2016FULLBASE: Windows_Server-2016-English-Full-Base-2018.09.15
     ap-northeast-2:
       SPSLRHEL: ami-be65d0d0
       SPSLRHELBYOL: ami-a64ae4c8
-      WS2016FULLBASE: ami-09946216dae739979
+      WS2016FULLBASE: ami-06435dc96d51c1b50
     ap-south-1:
       SPSLRHEL: ami-2882b747
       SPSLRHELBYOL: ami-79446216
-      WS2016FULLBASE: ami-09ae83da98a52eedf
+      WS2016FULLBASE: ami-038ba93548f26cb9c
     ap-southeast-1:
       SPSLRHEL: ami-dcbeb3a0
       SPSLRHELBYOL: ami-be0220c2
-      WS2016FULLBASE: ami-0eef402ab8215fe85
+      WS2016FULLBASE: ami-031244b26d2e3079b
     ap-southeast-2:
       SPSLRHEL: ami-adfc24cf
       SPSLRHELBYOL: ami-800fc4e2
-      WS2016FULLBASE: ami-0f1155cc2cb6b0cfd
+      WS2016FULLBASE: ami-0d1c25021d0863177
     ca-central-1:
       SPSLRHEL: ami-44a32120
       SPSLRHELBYOL: ami-59f7763d
-      WS2016FULLBASE: ami-c90b86ad
+      WS2016FULLBASE: ami-02b53f7a9c60e0b9f
     eu-central-1:
       SPSLRHEL: ami-f48cb21f
       SPSLRHELBYOL: ami-56efcabd
-      WS2016FULLBASE: ami-049951c6a9c02b260
+      WS2016FULLBASE: ami-077fbac22ac466c00
     eu-west-1:
       SPSLRHEL: ami-30737bda
       SPSLRHELBYOL: ami-267f5f5f
-      WS2016FULLBASE: ami-088f9db67b4afec52
+      WS2016FULLBASE: ami-0b2744e066ace793d
     eu-west-2:
       SPSLRHEL: ami-9c39d0fb
       SPSLRHELBYOL: ami-6d93700a
-      WS2016FULLBASE: ami-fbce3b9c
+      WS2016FULLBASE: ami-0c09927662c939f41
     eu-west-3:
       SPSLRHEL: ami-acee5ed1
       SPSLRHELBYOL: ami-5cc07121
-      WS2016FULLBASE: ami-0de5557ff47b0440b
+      WS2016FULLBASE: ami-063c5c314e33b92b1
     sa-east-1:
       SPSLRHEL: ami-81e3c6ed
       SPSLRHELBYOL: ami-cf99c9a3
-      WS2016FULLBASE: ami-0a4d05981d4d06305
+      WS2016FULLBASE: ami-070149537a6f5aa86
     us-east-1:
       SPSLRHEL: ami-0290ce7d
       SPSLRHELBYOL: ami-44ae023b
-      WS2016FULLBASE: ami-0b7b74ba8473ec232
+      WS2016FULLBASE: ami-01945499792201081
     us-east-2:
       SPSLRHEL: ami-e483ba81
       SPSLRHELBYOL: ami-78c0f31d
-      WS2016FULLBASE: ami-0b714f9b34964c255
+      WS2016FULLBASE: ami-0ca3e3965ada31684
     us-west-1:
       SPSLRHEL: ami-2ba04148
       SPSLRHELBYOL: ami-779b8917
-      WS2016FULLBASE: ami-046d46120552571e6
+      WS2016FULLBASE: ami-0df605282263fb1c9
     us-west-2:
       SPSLRHEL: ami-055d167d
       SPSLRHELBYOL: ami-e6610e9e
-      WS2016FULLBASE: ami-0d0d4f8ea9e3965a6
+      WS2016FULLBASE: ami-0a98eba42e9bf85c9
 Conditions:
   GovCloudCondition:
     !Equals
